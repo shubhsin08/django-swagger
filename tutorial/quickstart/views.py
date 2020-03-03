@@ -8,8 +8,9 @@ import django_filters
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-
+from rest_framework.pagination import PageNumberPagination 
 from rest_framework.response import Response
+from rest_framework import pagination
 # class ListSongsFilter(filters.FilterSet):
 #     name = django_filters.CharFilter(lookup_expr='iexact')
 
@@ -75,34 +76,76 @@ from rest_framework.response import Response
     # @swagger_auto_schema(operation_description="get description override", responses={404: 'slug not found'}, manual_parameters=[artist_param])
     # def list(self, request, *args, **kwargs):
     #     # return None
+# class PageNumberPagination(pagination.PageNumberPagination):
+#     page_size_query_param = "page_size"
 
-class UserFilter(filters.FilterSet):
-    search = django_filters.CharFilter(lookup_expr='iexact')
+#     ##
+#     # Returns the paginated Response.
+#     #
+#     # @param data The data that is to be displayed
+#     #
+#     # @return The paginated Response.
+#     #
+#     def get_paginated_response(self, data):
+#         return Response({
+#             "links":  {
+#                 "next":     self.get_next_link(),
+#                 "previous": self.get_previous_link()
+#             },
+#             "count":      self.page.paginator.count,
+#             "results":    data,
+#             "pageCount":  self.page.paginator.num_pages,
+#             "pageNumber": self.page.number,
+#             "pageSize":   self.page.paginator.per_page
+#         })
+
+
+
 
 
 class getuserviewset(viewsets.ModelViewSet):
 
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = UserFilter
-    artist_param = openapi.Parameter('search', in_=openapi.IN_QUERY,type=openapi.TYPE_STRING)
+    limit = openapi.Parameter('limit', in_=openapi.IN_QUERY,type=openapi.TYPE_STRING)
 
     # @swagger_auto_schema(operation_description="get description override", responses={404: 'slug not found'}, manual_parameters=[artist_param])
     # def get_queryset(self):
     #     search=self.request.GET.get('search', None)
     #     queryset= User.objects.filter(name__startswith=search)
     #     return queryset
-    @swagger_auto_schema(manual_parameters=[artist_param])
-    def get_queryset(self):
-        search=self.request.query_params.get('search')
-        id=self.kwargs['id']
-        queryset= User.objects.filter(name__startswith=search,id=id).values_list('name','designation')
+    @swagger_auto_schema(manual_parameters=[limit])
+    def list(self,request,*args,**kwargs):
+        #search=self.request.GET.get('search','')
+        limit=self.request.GET.get('limit','')
+        #id=self.kwargs['id']
+        queryset= User.objects.all().values_list('name','designation')
         queryset=[{'name':i[0],'designation':i[1]} for i in queryset]
-        serializer=getuserserializer(queryset,many=True)
-        response={}
-        response['result']=serializer.data
+        #serializer=getuserserializer(queryset,many=True)
 
-        return queryset
+        if limit:
+            pagination.PageNumberPagination.page_size=limit
 
+        page = self.paginate_queryset(queryset)
+        serializer_context = {'request': request}
+        serializer = self.serializer_class(
+            page, context=serializer_context, many=True
+        )
+        return self.get_paginated_response(serializer.data)
+
+        
+        
+       
         
     
     serializer_class=getuserserializer   
+
+class testviewset(viewsets.ModelViewSet):
+    def get_queryset(self):
+        limit=self.request.query_params.get('limit')
+        if limit:
+                pagination.PageNumberPagination.page_size=limit
+        queryset=User.objects.all().values_list('name','designation')
+        queryset=[{'name':i[0],'designation':i[1]} for i in queryset]
+
+        return queryset
+
+    serializer_class=getuserserializer

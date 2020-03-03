@@ -4,5 +4,6 @@ from tutorial.quickstart.views import *
 
 urlpatterns=[
 
-    path('<int:id>/details/',getuserviewset.as_view({'get': 'list'})),
+    path('details/',getuserviewset.as_view({'get': 'list'})),
+    path('test/',testviewset.as_view({'get': 'list'})),
 ]
