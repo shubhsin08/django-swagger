@@ -34,12 +34,15 @@ class getuserviewset(viewsets.ModelViewSet):
 
     @swagger_auto_schema(manual_parameters=[limit])
     def list(self,request,*args,**kwargs):
+
         #search=self.request.GET.get('search','')
+
         limit=self.request.GET.get('limit','')
         #id=self.kwargs['id']
+        
         queryset= User.objects.all().values_list('name','designation')
         queryset=[{'name':i[0],'designation':i[1]} for i in queryset]
-        serializer=getuserserializer(queryset,many=True)
+
 
         if limit:
             pagination.PageNumberPagination.page_size=limit
@@ -52,10 +55,6 @@ class getuserviewset(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
     
         
-        
-       
-        
-    
     serializer_class=getuserserializer   
 
 class testviewset(viewsets.ModelViewSet):
