@@ -21,7 +21,7 @@ Jinja2==2.10.1
 MarkupSafe==1.1.1
 mysql-connector-python==8.0.19
 packaging==20.1
-protobuf==3.6.1
+protobuf==3.18.3
 PyJWT==1.4.2
 PyMySQL==0.9.3
 pyparsing==2.4.6
